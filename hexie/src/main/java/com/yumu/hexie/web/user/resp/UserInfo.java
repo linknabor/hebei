@@ -56,9 +56,16 @@ public class UserInfo implements Serializable {
     
     private String xiaoquName;
     private long id;
-    private String sect_id;
+    private String officeTel;
+    
 
-    public UserInfo(){}
+    public String getOfficeTel() {
+		return officeTel;
+	}
+	public void setOfficeTel(String officeTel) {
+		this.officeTel = officeTel;
+	}
+	public UserInfo(){}
     public UserInfo(User user){
         BeanUtils.copyProperties(user, this);
     }
@@ -240,12 +247,6 @@ public class UserInfo implements Serializable {
     public void setId(long id) {
         this.id = id;
     }
-	public String getSect_id() {
-		return sect_id;
-	}
-	public void setSect_id(String sect_id) {
-		this.sect_id = sect_id;
-	}
     
     
 }

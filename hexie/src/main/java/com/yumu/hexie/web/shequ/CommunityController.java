@@ -42,7 +42,6 @@ import com.yumu.hexie.model.community.CommunityInfo;
 import com.yumu.hexie.model.community.Thread;
 import com.yumu.hexie.model.community.ThreadComment;
 import com.yumu.hexie.model.user.User;
-import com.yumu.hexie.service.common.SystemConfigService;
 import com.yumu.hexie.service.shequ.CommunityService;
 import com.yumu.hexie.service.user.UserService;
 import com.yumu.hexie.web.BaseController;
@@ -68,9 +67,6 @@ public class CommunityController extends BaseController{
 	@Inject
 	private UserService userService;
 	
-	@Inject
-	private SystemConfigService systemConfigService;
-	
 	/*****************[BEGIN]帖子********************/
 	
 	/**
@@ -85,16 +81,74 @@ public class CommunityController extends BaseController{
 	public BaseResult<List<Thread>> getThreadList(@ModelAttribute(Constants.USER)User user, @RequestBody Thread thread, 
 				@PathVariable String filter,  @PathVariable int currPage ) throws Exception {
 		
-		Sort sort = new Sort(Direction.DESC , "stickPriority", "createDate", "createTime");
-		user = userService.getById(user.getId());
-		List<Thread>list = new ArrayList<Thread>();
-		Pageable page = new PageRequest(currPage, PAGE_SIZE, sort);
-		list = communityService.getThreadListByUserId(user.getId(), thread.getThreadCategory(), page);
+		Long sect_id = null;
+		try {
+			sect_id = user.getXiaoquId();
+		} catch (Exception e) {
 			
+			return BaseResult.successResult(new ArrayList<Thread>());
+		}
+		
+		log.debug("sect_id is : " + sect_id);
+		log.debug("filter is : " + filter);
+		
+		if ("y".equals(filter) && null == sect_id) {
+			return BaseResult.successResult(new ArrayList<Thread>());
+		}
+		
+		Sort sort = new Sort(Direction.DESC , "stickPriority", "createDate", "createTime");
+		
+		List<Thread>list = new ArrayList<Thread>();
+		
+		Pageable page = new PageRequest(currPage, PAGE_SIZE, sort);
+		
+		if (StringUtil.isEmpty(thread.getThreadCategory())) {
+			
+			//查看本小区的
+			if ("y".equals(filter)) {
+				list = communityService.getThreadList(user.getXiaoquId(), page);
+			}else {
+				list = communityService.getThreadList(page);
+			}
+			
+		}else {
+			
+			//查看本小区的
+			if ("y".equals(filter)) {
+				
+				if ("4".equals(thread.getThreadCategory())) {
+					//二手市场
+					list = communityService.getThreadListByCategory(thread.getThreadCategory(), user.getXiaoquId(), page);
+				
+				}else {
+					//邻里叽歪
+					list = communityService.getThreadListByNewCategory("4", user.getXiaoquId(), page);
+					
+				}
+			
+			}else {
+				
+				if ("4".equals(thread.getThreadCategory())) {
+					//二手市场
+					list = communityService.getThreadListByCategory(thread.getThreadCategory(), page);
+				
+				}else {
+					
+					//邻里叽歪
+					list = communityService.getThreadListByNewCategory("4", page);
+					
+				}
+				
+				
+			}
+			
+		}
+		
 		for (int i = 0; i < list.size(); i++) {
 			
 			Thread td = list.get(i);
 			String attachmentUrl = td.getAttachmentUrl();
+			
 //			if (StringUtil.isEmpty(attachmentUrl)) {
 //				moveImgsFromTencent2Qiniu(td);
 //			}
@@ -143,11 +197,8 @@ public class CommunityController extends BaseController{
 		}
 		
 		
-		log.debug("list is : " + list);
-		List<Object> totle_list = new ArrayList<Object>();
-		totle_list.add(list);
-		totle_list.add(user.getSect_id());
-		return BaseResult.successResult(totle_list);
+		log.debug("list is : " + list);		
+		return BaseResult.successResult(list);
 		
 	}
 	
@@ -164,6 +215,19 @@ public class CommunityController extends BaseController{
 	public BaseResult<String> addThread(HttpSession session, @RequestBody Thread thread) throws Exception{
 		
 		User user = (User)session.getAttribute(Constants.USER);
+		
+		Long sect_id = null;
+		try {
+			sect_id = user.getXiaoquId();
+		} catch (Exception e) {
+			
+			return BaseResult.fail("用户没有注册小区。");
+		}
+		
+		if(sect_id == null){
+			
+			return BaseResult.fail("用户没有注册小区。");
+		}
 		
 		if(thread.getThreadContent().length()>200){
 			
@@ -338,8 +402,6 @@ public class CommunityController extends BaseController{
 			PutExtra extra = new PutExtra();
 			File img = null;
 			
-			String accessToken = systemConfigService.queryWXAToken();
-			
 			try {
 				for (int i = 0; i < uploadIdArr.length; i++) {
 					
@@ -347,7 +409,7 @@ public class CommunityController extends BaseController{
 					int imgcounter = 0;
 					inputStream = null;
 					while(inputStream==null&&imgcounter<3) {
-						inputStream = FileService.downloadFile(uploadId, accessToken);		//下载图片
+						inputStream = FileService.downloadFile(uploadId);		//下载图片
 						if (inputStream==null) {
 							log.error("获取图片附件失败。");
 						}

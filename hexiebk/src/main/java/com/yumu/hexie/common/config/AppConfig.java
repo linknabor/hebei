@@ -29,7 +29,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -39,7 +38,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.yumu.hexie.model.system.SystemConfig;
 
 
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class })
@@ -66,7 +64,10 @@ public class AppConfig {
     private String redisHost;
     @Value(value = "${redis.port}")
     private String redisPort;
-    
+    @Value(value = "${redis.password}")
+    private String redisPassword;
+    @Value(value = "${redis.database}")
+    private int redisDatabase;
     public static void main(String[] args) {
         SpringApplication.run(AppConfig.class, args);
     }
@@ -126,6 +127,8 @@ public class AppConfig {
         JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
         connectionFactory.setHostName(redisHost);
         connectionFactory.setPort(Integer.valueOf(redisPort));
+        connectionFactory.setPassword(redisPassword);
+        connectionFactory.setDatabase(redisDatabase);
         //connectionFactory.setPassword(redisPassword);
         connectionFactory.setUsePool(true);
         return connectionFactory;
@@ -144,15 +147,6 @@ public class AppConfig {
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         return redisTemplate;
     }
-    
-    @Bean(name = "systemConfigRedisTemplate")
-    public RedisTemplate<String, SystemConfig> systemConfigRedisTemplate(){
-        RedisTemplate<String, SystemConfig> redisTemplate = new RedisTemplate<String, SystemConfig>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<SystemConfig>(SystemConfig.class));
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        return redisTemplate;
-    };
     
     public KeyGenerator keyGenerator() {
         return new KeyGenerator(){

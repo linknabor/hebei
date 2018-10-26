@@ -83,7 +83,7 @@ public class WechatCoreServiceImpl implements WechatCoreService {
 				// 事件类型
 				switch (requestMap.getEvent()) {
 				case ConstantWeChat.EVENT_TYPE_SUBSCRIBE:// 订阅
-					respContent = "欢迎来到兴社区\n"
+					respContent = "欢迎来到合协社区\n"
 							+ "【我的房子】物业费缴纳、账单查询\n"
 							+ "【到家服务】一键预约，随叫随到\n"
 							+ "【限时特卖】每日限时劲爆商品抢鲜\n"
@@ -256,18 +256,6 @@ public class WechatCoreServiceImpl implements WechatCoreService {
 	public WxRefundOrder refundQuery(String outTradeNo) {
 		try {
 			return RefundService.refundQuery(outTradeNo);
-		} catch (Exception e) {
-			processError(e);
-		}
-		return null;
-	}
-
-
-	@Override
-	public String getBindOpenId(String code) {
-		try {
-		    AccessTokenOAuth auth =  OAuthService.getBindOAuthAccessToken(code);
-	        return auth.getOpenid();
 		} catch (Exception e) {
 			processError(e);
 		}

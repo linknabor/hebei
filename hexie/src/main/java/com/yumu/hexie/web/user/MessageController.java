@@ -1,6 +1,5 @@
 package com.yumu.hexie.web.user;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -17,12 +16,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.yumu.hexie.common.Constants;
-import com.yumu.hexie.common.util.StringUtil;
 import com.yumu.hexie.model.community.Message;
 import com.yumu.hexie.model.user.Feedback;
 import com.yumu.hexie.model.user.User;
 import com.yumu.hexie.service.user.MessageService;
-import com.yumu.hexie.service.user.UserService;
 import com.yumu.hexie.web.BaseController;
 import com.yumu.hexie.web.BaseResult;
 import com.yumu.hexie.web.user.req.ReplyReq;
@@ -35,23 +32,13 @@ public class MessageController extends BaseController {
 	private static final int PAGE_SIZE = 10;
 	@Inject
 	private MessageService messageService;
-	@Inject
-	private UserService userService;
 	//消息列表
 	@RequestMapping(value = "/messages/{currentPage}", method = RequestMethod.GET)
 	@ResponseBody
 	public BaseResult<List<Message>> messages(@ModelAttribute(Constants.USER)User user, @PathVariable int currentPage)
 			throws Exception {
-		user = userService.getById(user.getId());
-		List<List<Message>> totle_message = new ArrayList<List<Message>>();
-		List<Message> message0 = messageService.queryMessages(user.getSect_id(), 0, currentPage, PAGE_SIZE);
-		totle_message.add(message0);
-		List<Message> message1 = messageService.queryMessages(user.getSect_id(), 1, currentPage, PAGE_SIZE);
-		totle_message.add(message1);
-		List<Message> message2 = messageService.queryMessages(user.getSect_id(), 2, currentPage, PAGE_SIZE);
-		totle_message.add(message2);
-		
-		return BaseResult.successResult(totle_message);
+		List<Message> message = messageService.queryMessages( currentPage, PAGE_SIZE);
+		return BaseResult.successResult(message);
 	}
 
 	//消息详情
@@ -60,25 +47,6 @@ public class MessageController extends BaseController {
 	public BaseResult<Message> getMessageDetail(@ModelAttribute(Constants.USER) User user,@PathVariable long messageId)
 			throws Exception {
 		Message message = messageService.findOne(messageId);
-		return BaseResult.successResult(message);
-	}
-	
-	//消息详情
-	@RequestMapping(value = "/getmessages", method = RequestMethod.GET)
-	@ResponseBody
-	public BaseResult<Message> getMessageBySectId(@ModelAttribute(Constants.USER) User user)
-				throws Exception {
-		user = userService.getById(user.getId());
-		//查询便民信息
-		Message message = new Message();
-		if(!StringUtil.isEmpty(user.getSect_id()) && !"0".equals(user.getSect_id()))
-		{
-			message = messageService.findOneByregionId(3, user.getSect_id(), true);
-		}else
-		{
-			message = messageService.findOneByregionId(3, user.getSect_id(), false);
-		}
-		
 		return BaseResult.successResult(message);
 	}
 	

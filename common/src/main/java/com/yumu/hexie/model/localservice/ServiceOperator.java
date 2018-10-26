@@ -30,7 +30,7 @@ public class ServiceOperator  extends BaseModel {
     private long userId;
     
 
-    private Long regionId;//兴社区区域ID
+    private Long regionId;//合协社区区域ID
     private boolean fromWuye = false;
     private double longitude;
     private double latitude;

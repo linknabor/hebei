@@ -139,7 +139,7 @@ public class SmsServiceImpl implements SmsService {
 		//是否使用自定义签名
 		String use_default_sign = systemConfigService.queryValueByKey("USE_DEFINED_MSG_SIGN"); 
 		
-		//1：自定义签名。0或者空：供应商签兴社区
+		//1：自定义签名。0或者空：供应商签合协社区
 		if (!"1".equals(use_default_sign)) {
 			return ""; 
 		}
@@ -148,8 +148,8 @@ public class SmsServiceImpl implements SmsService {
 		sign = "【"+sign+"】";
 		
 		if (StringUtil.isEmpty(sign)) {
-			LOGGER.error("未配置系统参数SYS_NAME，默认值：兴社区");
-			sign = "【兴社区】";
+			LOGGER.error("未配置系统参数SYS_NAME，默认值：合协社区");
+			sign = "【合协社区】";
 		}
 		return sign;
 	}

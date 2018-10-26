@@ -1,20 +1,11 @@
-package com.yumu.hexie.integration.daojia.home;
+package com.yumu.hexie.integration.daojia.haojiaan;
 
 import java.io.Serializable;
 import java.util.Date;
 
-/** 
- * <p>项目：兴社区公众号</p>
- * <p>模块：爱相伴服务</p>
- * <p>描述：字段对应AixiangbanOrdre.java中的字段</p>
- * <p>版    权: Copyright (c) 2016</p>
- * <p>公    司: 上海奈博信息科技有限公司</p>
- * @author hwb_work 
- * @version 1.0 
- * 创建时间：2016年4月15日 下午1:54:26
- */
-public class AixiangbanReq implements Serializable{
-	private static final long serialVersionUID = 6898376376725362264L;
+public class HaoJiaAnReq implements Serializable{
+	private static final long serialVersionUID = 4808669460780339640L;
+
 	private long orderId;//订单id
 	private long ruleId;//规则id
 	private String serviceTypeName; //服务类型
@@ -22,6 +13,7 @@ public class AixiangbanReq implements Serializable{
 	private int paymentType;//0线下支付、1微信支付
 	private long payStatus;//支付状态；0未支付，1已支付
 	private String prices;//支付金额 
+	private String expectedTime;//期望服务时间;如果周期产品，首次配送的为时间
 	private String strMobile;
 	private String strName;
 	private String strWorkAddr;
@@ -68,6 +60,12 @@ public class AixiangbanReq implements Serializable{
 	}
 	public void setPrices(String prices) {
 		this.prices = prices;
+	}
+	public String getExpectedTime() {
+		return expectedTime;
+	}
+	public void setExpectedTime(String expectedTime) {
+		this.expectedTime = expectedTime;
 	}
 	public String getStrMobile() {
 		return strMobile;

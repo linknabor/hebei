@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.yumu.hexie.common.Constants;
 import com.yumu.hexie.common.util.DateUtil;
 import com.yumu.hexie.common.util.StringUtil;
-import com.yumu.hexie.integration.wechat.constant.ConstantWeChat;
 import com.yumu.hexie.integration.wechat.entity.user.UserWeiXin;
 import com.yumu.hexie.model.localservice.HomeServiceConstant;
 import com.yumu.hexie.model.promotion.coupon.Coupon;
@@ -30,7 +29,6 @@ import com.yumu.hexie.model.user.User;
 import com.yumu.hexie.service.common.GotongService;
 import com.yumu.hexie.service.common.SmsService;
 import com.yumu.hexie.service.common.SystemConfigService;
-import com.yumu.hexie.service.exception.BizValidateException;
 import com.yumu.hexie.service.o2o.OperatorService;
 import com.yumu.hexie.service.shequ.WuyeService;
 import com.yumu.hexie.service.user.CouponService;
@@ -75,18 +73,27 @@ public class UserController extends BaseController{
 	@RequestMapping(value = "/userInfo", method = RequestMethod.GET)
 	@ResponseBody
     public BaseResult<UserInfo> userInfo(HttpSession session,@ModelAttribute(Constants.USER)User user) throws Exception {
-        user = userService.getById(user.getId());
+		log.error("进入userInfo接口");
+		user = userService.getById(user.getId());
+        log.error("userInfo的user "+ user);
         if(user != null){
-        	if (StringUtil.isEmpty(user.getOpenid())) {
-    			return new BaseResult<UserInfo>().failCode(BaseResult.NEED_MAIN_LOGIN); 
-			}
-        	session.setAttribute(Constants.USER, user);
-        	UserInfo userinfo = new UserInfo(user,operatorService.isOperator(HomeServiceConstant.SERVICE_TYPE_REPAIR,user.getId()));
-            return new BaseResult<UserInfo>().success(userinfo);
+            session.setAttribute(Constants.USER, user);
+            log.error("user.getOfficeTel = "+ user.getOfficeTel());
+            return new BaseResult<UserInfo>().success(new UserInfo(user,operatorService.isOperator(HomeServiceConstant.SERVICE_TYPE_REPAIR,user.getId())));
         } else {
             return new BaseResult<UserInfo>().success(null);
         }
     }
+	
+	//检查当前用户是否注册，注册标准参考电话是否为有值。
+	@RequestMapping(value = "/checkTell", method = RequestMethod.GET)
+	@ResponseBody
+	public BaseResult<?> checkTell(@ModelAttribute(Constants.USER)User user){
+		if(user.getTel() != null && !user.getTel().equals("")) {
+			 return BaseResult.successResult("用户已注册");
+		}
+		return BaseResult.fail("用户未注册");
+	}
 
 	@RequestMapping(value = "/profile", method = RequestMethod.GET)
 	@ResponseBody
@@ -116,6 +123,7 @@ public class UserController extends BaseController{
 		    if(userAccount == null) {
 		        userAccount = userService.getOrSubscibeUserByCode(code);
 		    }
+		    
 			pointService.addZhima(userAccount, 5, "zm-login-"+DateUtil.dtFormat(new Date(),"yyyy-MM-dd")+userAccount.getId());
 			wuyeService.userLogin(userAccount.getOpenid());
 			
@@ -132,10 +140,6 @@ public class UserController extends BaseController{
 		}
 		if(userAccount == null) {
             return new BaseResult<UserInfo>().failMsg("用户不存在！");
-		}
-		
-		if (StringUtil.isEmpty(userAccount.getBindOpenId())) {
-			return new BaseResult<UserInfo>().failCode(BaseResult.NEED_MAIN_LOGIN); 
 		}
 
         return new BaseResult<UserInfo>().success(new UserInfo(userAccount,
@@ -199,6 +203,16 @@ public class UserController extends BaseController{
 		}
 	    return  new BaseResult<String>().success("验证码发送成功");
     }
+	
+	@RequestMapping(value = "/getyzm1", method = RequestMethod.POST)
+	@ResponseBody
+    public BaseResult<String> getYzm1(@RequestBody MobileYzm yzm) throws Exception {
+		boolean result = smsService.sendVerificationCode(12345, yzm.getMobile());
+		if(!result) {
+		    return new BaseResult<String>().failMsg("发送验证码失败");
+		}
+	    return  new BaseResult<String>().success("验证码发送成功");
+    }
 
 
 	@RequestMapping(value = "/savePersonInfo/{captcha}", method = RequestMethod.POST)
@@ -246,39 +260,4 @@ public class UserController extends BaseController{
             return new BaseResult<UserInfo>().success(new UserInfo(user));
         }
     }
-    
-    /**
-     * 绑定主公众号的openid
-     * @param user
-     * @param code
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/bindWechat/{code}", method = RequestMethod.POST)
-    @ResponseBody
-    public BaseResult<String> bindMain(@ModelAttribute(Constants.USER)User user, @PathVariable String code) throws Exception {
-    	
-    	User currUser = userService.getById(user.getId());
-    	if (currUser == null) {
-    		return new BaseResult<String>().failMsg("user does not exist !");
-		}
-    	if (StringUtil.isEmpty(currUser.getBindOpenId())) {
-    		String openId = "";
-        	if (StringUtil.isNotEmpty(code)) {
-        		try {
-    				openId = userService.getBindOrSubscibeUserOpenIdByCode(code);
-    				currUser.setBindOpenId(openId);
-    	        	currUser.setBindAppId(ConstantWeChat.BIND_APPID);
-    	        	userService.save(currUser);
-    			} catch (Exception e) {
-    				throw new BizValidateException("get bind openid failed ! ");
-    			}
-        	}
-        	
-		}
-    	
-    	return new BaseResult<String>().success("bind succeeded!");
-    	
-    }
-    
 }

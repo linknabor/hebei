@@ -27,6 +27,4 @@ public interface GotongService {
     public void sendSubscribeMsg(User user);
     
     public void sendCommonYuyueBillMsg(int serviceType,String title,String billName, String requireTime, String url);
-
-    public void sendThreadPubNotify(User user, com.yumu.hexie.model.community.Thread thread);
 }

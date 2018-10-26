@@ -19,7 +19,22 @@ public class SimpleRegisterReq implements Serializable{
     private String mobile;
     private String yzm;
     private String name;
-    public String getMobile() {
+    private String sn;	//充电桩设备号
+    private String sectId;//充电设备所在小区ID servplat
+    
+	public String getSectId() {
+		return sectId;
+	}
+	public void setSectId(String sectId) {
+		this.sectId = sectId;
+	}
+	public String getSn() {
+		return sn;
+	}
+	public void setSn(String sn) {
+		this.sn = sn;
+	}
+	public String getMobile() {
         return mobile;
     }
     public void setMobile(String mobile) {
@@ -37,5 +52,12 @@ public class SimpleRegisterReq implements Serializable{
     public void setName(String name) {
         this.name = name;
     }
+	@Override
+	public String toString() {
+		return "SimpleRegisterReq [mobile=" + mobile + ", yzm=" + yzm
+				+ ", name=" + name + ", sn=" + sn + ", sectId=" + sectId + "]";
+	}
+    
+    
     
 }
